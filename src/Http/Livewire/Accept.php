@@ -36,6 +36,12 @@ class Accept extends Component implements HasForms
             redirect()->intended(Filament::getUrl());
         }
 
+        $this->expired = ! Invite::query()
+            ->where('id', $acceptId)
+            ->where('token', $hash)
+            ->where('expires_at', '>=', now())
+            ->exists();
+
         $this->acceptId = $acceptId;
         $this->hash = $hash;
 
@@ -47,19 +53,18 @@ class Accept extends Component implements HasForms
      */
     public function submit()
     {
+        if (! $this->expired) {
+            return;
+        }
+
         $data = $this->form->getState();
 
         $invite = Invite::query()
             ->where('id', $this->acceptId)
             ->where('token', $this->hash)
             ->where('email', $data['email'])
-            ->first();
-
-        if ($invite->expires_at->lt(now())) {
-            $this->expired = true;
-
-            return;
-        }
+            ->where('expires_at', '>=', now())
+            ->firstOrFail();
 
         $user = User::where('email', $data['email'])->first();
 
