@@ -32,7 +32,7 @@ class SendInvite implements ShouldQueue
         $invite = Invite::create([
             'email' => $this->user->email,
             'token' => Str::random(10),
-            'expires_at' => now()->addDay(),
+            'expires_at' => now()->addHours(config('filament-invite.expiration_time_in_hours')),
         ]);
 
         $this->user->sendInviteNotification($invite);
