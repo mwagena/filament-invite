@@ -53,7 +53,7 @@ class Accept extends Component implements HasForms
      */
     public function submit()
     {
-        if (! $this->expired) {
+        if ($this->expired) {
             return;
         }
 
