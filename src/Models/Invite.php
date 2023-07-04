@@ -16,4 +16,8 @@ class Invite extends Model
         'token',
         'expires_at',
     ];
+
+    protected $casts = [
+        'expires_at' => 'timestamp',
+    ];
 }

@@ -2,10 +2,10 @@
 
 namespace Concept7\FilamentInvite;
 
-use Livewire\Livewire;
-use Filament\PluginServiceProvider;
-use Spatie\LaravelPackageTools\Package;
 use Concept7\FilamentInvite\Http\Livewire\Accept;
+use Filament\PluginServiceProvider;
+use Livewire\Livewire;
+use Spatie\LaravelPackageTools\Package;
 
 class FilamentInviteServiceProvider extends PluginServiceProvider
 {

@@ -26,6 +26,8 @@ class Accept extends Component implements HasForms
 
     public $submitted = false;
 
+    public $expired = false;
+
     protected $listeners = ['refresh' => '$refresh'];
 
     public function mount(string $acceptId, string $hash): void
@@ -45,15 +47,19 @@ class Accept extends Component implements HasForms
      */
     public function submit()
     {
-
         $data = $this->form->getState();
 
         $invite = Invite::query()
             ->where('id', $this->acceptId)
             ->where('token', $this->hash)
             ->where('email', $data['email'])
-            ->where('expires_at', '>=', now())
-            ->firstOrFail();
+            ->first();
+
+        if ($invite->expires_at->lt(now())) {
+            $this->expired = true;
+
+            return;
+        }
 
         $user = User::where('email', $data['email'])->first();
 
