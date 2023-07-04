@@ -24,11 +24,11 @@ class FilamentInviteServiceProvider extends PluginServiceProvider
     ];
 
     protected array $styles = [
-        'plugin-filament-invite' => __DIR__.'/../resources/dist/filament-invite.css',
+        // 'plugin-filament-invite' => __DIR__.'/../resources/dist/filament-invite.css',
     ];
 
     protected array $scripts = [
-        'plugin-filament-invite' => __DIR__.'/../resources/dist/filament-invite.js',
+        // 'plugin-filament-invite' => __DIR__.'/../resources/dist/filament-invite.js',
     ];
 
     // protected array $beforeCoreScripts = [
