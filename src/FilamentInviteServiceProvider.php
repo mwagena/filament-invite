@@ -39,7 +39,7 @@ class FilamentInviteServiceProvider extends PackageServiceProvider
     {
         parent::packageBooted();
 
-        Livewire::component(Accept::getName(), Accept::class);
+        Livewire::component('accept', Accept::class);
     }
 
     public function configurePackage(Package $package): void
