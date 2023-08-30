@@ -3,11 +3,11 @@
 namespace Concept7\FilamentInvite;
 
 use Concept7\FilamentInvite\Http\Livewire\Accept;
-use Filament\PluginServiceProvider;
 use Livewire\Livewire;
 use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-class FilamentInviteServiceProvider extends PluginServiceProvider
+class FilamentInviteServiceProvider extends PackageServiceProvider
 {
     public static string $name = 'filament-invite';
 
