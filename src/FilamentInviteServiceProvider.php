@@ -3,6 +3,8 @@
 namespace Concept7\FilamentInvite;
 
 use Concept7\FilamentInvite\Http\Livewire\Accept;
+use Filament\Facades\Filament;
+use Filament\Panel;
 use Livewire\Livewire;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -35,6 +37,15 @@ class FilamentInviteServiceProvider extends PackageServiceProvider
     //     'plugin-filament-invite' => __DIR__ . '/../resources/dist/filament-invite.js',
     // ];
 
+    public function register(): void
+    {
+        parent::register();
+
+        Filament::registerPanel(
+            $this->panel(Panel::make()),
+        );
+    }
+
     public function packageBooted(): void
     {
         parent::packageBooted();
@@ -48,8 +59,18 @@ class FilamentInviteServiceProvider extends PackageServiceProvider
             ->name(static::$name)
             ->hasConfigFile()
             ->hasViews()
-            ->hasRoute('web')
+            // ->hasRoute('web')
             ->hasMigration('2023_05_19_083051_create_invites_table')
             ->runsMigrations();
+    }
+
+    public function panel(Panel $panel): Panel
+    {
+        return $panel
+            ->id('invite')
+            ->path('invite')
+            ->pages([
+                Accept::class,
+            ]);
     }
 }
