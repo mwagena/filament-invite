@@ -40,7 +40,7 @@ class SendInviteNotification extends Notification
 
     public function getLink(): string
     {
-        return route('filament.auth.accept-invite', [
+        return route('filament.invite.pages.accept', [
             'acceptId' => $this->invite->id,
             'hash' => $this->invite->token,
         ]);
