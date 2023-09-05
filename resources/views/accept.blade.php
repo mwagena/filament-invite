@@ -1,20 +1,17 @@
-<div>
-    @unless($expired)
-    <form wire:submit.prevent="submit" class="space-y-8">
-        @if(session()->has('danger'))
-            <div class="p-4 mb-4 text-sm text-danger-700 bg-danger-500/10 rounded-lg dark:bg-danger-900/50 dark:text-danger-700" role="alert">
-                {{ session('danger') }}
-            </div>
-        @endif
+<x-filament-panels::page.simple>
 
-        {{ $this->form }}
+@unless($expired)
+<x-filament-panels::form wire:submit="submit">
+    {{ $this->form }}
 
-        <x-filament::button type="submit" form="submit" class="w-full">
-            {{ __('Accept invite') }}
-        </x-filament::button>
+    <x-filament-panels::form.actions
+        :actions="$this->getCachedFormActions()"
+        :full-width="$this->hasFullWidthFormActions()"
+    />
+</x-filament-panels::form>
+@else
+<p>{{ __('Invite link is expired.') }}</p>
+@endunless
 
-    </form>
-    @else
-        <p>{{ __('Invite link is expired.') }}</p>
-    @endunless
-</div>
+</x-filament-panels::page.simple>
+
