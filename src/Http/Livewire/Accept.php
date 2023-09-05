@@ -116,7 +116,7 @@ class Accept extends SimplePage
                 'data.email' => __('Login failed'),
             ]);
 
-            session()->regenerate();
+            // session()->regenerate();
 
             return route('filament.auth.login');
         }
