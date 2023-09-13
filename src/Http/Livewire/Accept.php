@@ -44,6 +44,11 @@ class Accept extends SimplePage
      */
     public ?array $data = [];
 
+    public function getTitle(): string
+    {
+        return __('Accept');
+    }
+
     public function mount(string $acceptId = null, string $hash = null): void
     {
         if (Filament::auth()->check()) {
