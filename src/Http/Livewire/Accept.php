@@ -5,19 +5,25 @@ namespace Concept7\FilamentInvite\Http\Livewire;
 use App\Models\User;
 use Concept7\FilamentInvite\Events\InviteProcessedEvent;
 use Concept7\FilamentInvite\Models\Invite;
+use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use DanHarrin\LivewireRateLimiting\WithRateLimiting;
+use Filament\Actions\Action;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\Component;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
-use Illuminate\Support\Facades\Auth;
+use Filament\Forms\Form;
+use Filament\Notifications\Notification;
+use Filament\Pages\Concerns\HasRoutes;
+use Filament\Pages\Concerns\InteractsWithFormActions;
+use Filament\Pages\SimplePage;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use Livewire\Component;
 
-class Accept extends Component implements HasForms
+class Accept extends SimplePage
 {
-    use InteractsWithForms;
+    use HasRoutes;
+    use InteractsWithFormActions;
     use WithRateLimiting;
 
     public string $acceptId;
@@ -28,22 +34,28 @@ class Accept extends Component implements HasForms
 
     public $expired = false;
 
-    protected $listeners = ['refresh' => '$refresh'];
+    /**
+     * @var view-string
+     */
+    protected static string $view = 'filament-invite::accept';
 
-    public function mount(string $acceptId, string $hash): void
+    /**
+     * @var array<string, mixed> | null
+     */
+    public ?array $data = [];
+
+    public function mount(string $acceptId = null, string $hash = null): void
     {
         if (Filament::auth()->check()) {
             redirect()->intended(Filament::getUrl());
         }
-
+        $this->acceptId = $acceptId ?? request()->query('acceptId');
+        $this->hash = $hash ?? request()->query('hash');
         $this->expired = ! Invite::query()
-            ->where('id', $acceptId)
-            ->where('token', $hash)
+            ->where('id', $this->acceptId)
+            ->where('token', $this->hash)
             ->where('expires_at', '>=', now())
             ->exists();
-
-        $this->acceptId = $acceptId;
-        $this->hash = $hash;
 
         $this->form->fill();
     }
@@ -53,8 +65,28 @@ class Accept extends Component implements HasForms
      */
     public function submit()
     {
+        try {
+            $this->rateLimit(5);
+        } catch (TooManyRequestsException $exception) {
+            Notification::make()
+                ->title(__('filament-panels::pages/auth/login.notifications.throttled.title', [
+                    'seconds' => $exception->secondsUntilAvailable,
+                    'minutes' => ceil($exception->secondsUntilAvailable / 60),
+                ]))
+                ->body(array_key_exists('body', __('filament-panels::pages/auth/login.notifications.throttled') ?: []) ? __('filament-panels::pages/auth/login.notifications.throttled.body', [
+                    'seconds' => $exception->secondsUntilAvailable,
+                    'minutes' => ceil($exception->secondsUntilAvailable / 60),
+                ]) : null)
+                ->danger()
+                ->send();
+
+            return null;
+        }
+
         if ($this->expired) {
-            return;
+            throw ValidationException::withMessages([
+                'data.email' => __('Link expired'),
+            ]);
         }
 
         $data = $this->form->getState();
@@ -77,47 +109,93 @@ class Accept extends Component implements HasForms
 
         event(new InviteProcessedEvent($user, $data['password']));
 
-        if (Auth::attempt($data)) {
-            // $request->session()->regenerate();
+        $this->submitted = true;
 
-            return redirect()->intended(route('filament.pages.dashboard'));
+        if (! Filament::auth()->attempt($data)) {
+            throw ValidationException::withMessages([
+                'data.email' => __('Login failed'),
+            ]);
+
+            // session()->regenerate();
+
+            return route('filament.auth.login');
         }
 
-        return route('filament.auth.login');
+        return redirect()->intended(route('filament.admin.pages.dashboard'));
 
-        $this->submitted = true;
     }
 
-    protected function getFormSchema(): array
+    public function form(Form $form): Form
+    {
+        return $form;
+    }
+
+    /**
+     * @return array<int | string, string | Form>
+     */
+    protected function getForms(): array
     {
         return [
-            TextInput::make('email')
-                ->label(__('Email'))
-                ->email()
-                ->required()
-                ->autocomplete(),
-
-            TextInput::make('password')
-                ->label(__('Password'))
-                ->password()
-                ->required()
-                ->rules([
-                    Password::defaults(),
-                ])
-                ->confirmed(),
-
-            TextInput::make('password_confirmation')
-                ->label(__('Password confirmation'))
-                ->password()
-                ->required(),
+            'form' => $this->form(
+                $this->makeForm()
+                    ->schema([
+                        $this->getEmailFormComponent(),
+                        $this->getPasswordFormComponent(),
+                        $this->getPasswordConfirmationFormComponent(),
+                    ])
+                    ->statePath('data'),
+            ),
         ];
     }
 
-    public function render(): View
+    protected function getEmailFormComponent(): Component
     {
-        return view('filament-invite::accept')
-            ->layout('filament::components.layouts.card', [
-                'title' => __('Accept'),
-            ]);
+        return TextInput::make('email')
+            ->label(__('E-mail address'))
+            ->email()
+            ->required()
+            ->autocomplete()
+            ->autofocus()
+            ->extraInputAttributes(['tabindex' => 1]);
+    }
+
+    protected function getPasswordFormComponent(): Component
+    {
+        return TextInput::make('password')
+            ->label(__('Password'))
+            ->password()
+            ->autocomplete('current-password')
+            ->required()
+            ->rules([
+                Password::defaults(),
+            ])
+            ->confirmed()
+            ->extraInputAttributes(['tabindex' => 2]);
+    }
+
+    protected function getPasswordConfirmationFormComponent(): Component
+    {
+        return TextInput::make('password_confirmation')
+            ->label(__('Password confirmation'))
+            ->password()
+            ->required()
+            ->extraInputAttributes(['tabindex' => 3]);
+    }
+
+    /**
+     * @return array<Action | ActionGroup>
+     */
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getAuthenticateFormAction(),
+        ];
+    }
+
+    protected function getAuthenticateFormAction(): Action
+    {
+        return Action::make('authenticate')
+            ->label(__('filament-panels::pages/auth/login.form.actions.authenticate.label'))
+            ->submit('authenticate');
     }
 }
