@@ -6,8 +6,9 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/concept7/filament-invite.svg?style=flat-square)](https://packagist.org/packages/concept7/filament-invite)
 
 
-
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+The package will be sending out invite emails by listening to the 'created'-event on user model. The user can click a link in the email to setup their password.
+Also included is a expired check on the link.
+The link will be as following: `domain.tld/invite/accept?acceptId=<uuid>&hash=<hash>`
 
 ## Installation
 
