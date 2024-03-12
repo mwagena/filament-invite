@@ -49,7 +49,7 @@ class Accept extends SimplePage
         return __('Accept');
     }
 
-    public function mount(string $acceptId = null, string $hash = null): void
+    public function mount(?string $acceptId = null, ?string $hash = null): void
     {
         if (Filament::auth()->check()) {
             redirect()->intended(Filament::getUrl());
