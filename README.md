@@ -18,6 +18,17 @@ You can install the package via composer:
 composer require concept7/filament-invite
 ```
 
+Register the plugin in your panel provider:
+```
+use Concept7\FilamentInvite\InvitePlugin;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+       ->plugin(new InvitePlugin());
+}
+```
+
 You can publish and run the migrations with:
 
 ```bash
