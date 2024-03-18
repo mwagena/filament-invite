@@ -13,7 +13,7 @@ Route::name('filament.')->group(function () {
                 ->name($panel->getId().'.')
                 ->prefix($panel->getPath())
                 ->group(function () {
-                    Route::get('invite/accept/{acceptId}/{hash}', Accept::class)
+                    Route::get('invite/accept', Accept::class)
                         ->name('accept-invite');
                 });
         }
