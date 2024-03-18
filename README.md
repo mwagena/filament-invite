@@ -19,7 +19,7 @@ composer require concept7/filament-invite
 ```
 
 Register the plugin in your panel provider:
-```
+```php
 use Concept7\FilamentInvite\InvitePlugin;
 
 public function panel(Panel $panel): Panel
