@@ -18,6 +18,17 @@ You can install the package via composer:
 composer require concept7/filament-invite
 ```
 
+Register the plugin in your panel provider:
+```php
+use Concept7\FilamentInvite\InvitePlugin;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+       ->plugin(new InvitePlugin());
+}
+```
+
 You can publish and run the migrations with:
 
 ```bash
@@ -36,6 +47,67 @@ php artisan vendor:publish --tag="filament-invite-views"
 ### Add Invitable trait to User model
 ```php
 use Concept7\FilamentInvite\Models\Traits\Invitable;
+```
+
+### Create a mailable
+
+In app/Mail, create SendInviteMail.php, e.g.
+
+```
+<?php
+
+namespace App\Mail;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Queue\SerializesModels;
+use App\Models\User;
+use Concept7\FilamentInvite\Contracts\SendInviteMail as SendInviteMailContract;
+
+class SendInviteMail extends Mailable implements SendInviteMailContract
+{
+    use Queueable, SerializesModels;
+
+    /**
+     * Create a new message instance.
+    /**
+     * Create a new message instance.
+     */
+    public function __construct(
+        private User $user,
+        private $url
+    ) {
+        //
+    }
+
+    /**
+     * Get the message envelope.
+     */
+    public function envelope(): Envelope
+    {
+        return new Envelope(
+            to: $this->user->email,
+            subject: 'You are invited to join ' . config('app.name'),
+        );
+    }
+
+    /**
+     * Get the message content definition.
+     */
+    public function content(): Content
+    {
+        return new Content(
+            markdown: 'filament-invite::mail.invite',
+            with: [
+                'user' => $this->user,
+                'link' => $this->url,
+            ]
+        );
+    }
+}
 ```
 
 ### Event listener

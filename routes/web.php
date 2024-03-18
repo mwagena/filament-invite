@@ -1,13 +1,21 @@
 <?php
 
 use Concept7\FilamentInvite\Http\Livewire\Accept;
+use Filament\Facades\Filament;
 
-Route::domain(config('filament.domain'))
-    ->middleware(config('filament.middleware.base'))
-    ->prefix(config('filament.path'))
-    ->name('filament.auth.')
-    ->group(function () {
-        Route::get('invite/accept/{acceptId}/{hash}', Accept::class)
-            // ->middleware('signed')
-            ->name('accept-invite');
-    });
+Route::name('filament.')->group(function () {
+    foreach (Filament::getPanels() as $panel) {
+        $domains = $panel->getDomains();
+
+        foreach ((empty($domains) ? [null] : $domains) as $domain) {
+            Route::domain($domain)
+                ->middleware($panel->getMiddleware())
+                ->name($panel->getId().'.')
+                ->prefix($panel->getPath())
+                ->group(function () {
+                    Route::get('invite/accept', Accept::class)
+                        ->name('accept-invite');
+                });
+        }
+    }
+});
