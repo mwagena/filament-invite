@@ -8,6 +8,8 @@ use Filament\Panel;
 use Livewire\Livewire;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Session\Middleware\StartSession;
 
 class FilamentInviteServiceProvider extends PackageServiceProvider
 {
@@ -69,6 +71,10 @@ class FilamentInviteServiceProvider extends PackageServiceProvider
         return $panel
             ->id('invite')
             ->path('invite')
+            ->middleware([
+                EncryptCookies::class,
+                StartSession::class,
+            ])
             ->pages([
                 Accept::class,
             ]);

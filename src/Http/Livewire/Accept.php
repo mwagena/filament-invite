@@ -126,7 +126,7 @@ class Accept extends SimplePage
             return route('filament.auth.login');
         }
 
-        return redirect()->intended(route('filament.admin.pages.dashboard'));
+        return redirect()->intended(route(config('filament-invite.after_login_redirect_route')));
 
     }
 
