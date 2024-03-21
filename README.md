@@ -5,7 +5,6 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/workflow/status/concept7/filament-invite/Check%20&%20fix%20styling?label=code%20style)](https://github.com/concept7/filament-invite/actions?query=workflow%3A"Check+%26+fix+styling"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/concept7/filament-invite.svg?style=flat-square)](https://packagist.org/packages/concept7/filament-invite)
 
-
 The package will be sending out invite emails by listening to the 'created'-event on user model. The user can click a link in the email to setup their password.
 Also included is a expired check on the link.
 The link will be as following: `domain.tld/invite/accept?acceptId=<uuid>&hash=<hash>`
@@ -19,6 +18,7 @@ composer require concept7/filament-invite
 ```
 
 Register the plugin in your panel provider:
+
 ```php
 use Concept7\FilamentInvite\InvitePlugin;
 
@@ -45,6 +45,7 @@ php artisan vendor:publish --tag="filament-invite-views"
 ## Usage
 
 ### Add Invitable trait to User model
+
 ```php
 use Concept7\FilamentInvite\Models\Traits\Invitable;
 ```
@@ -110,9 +111,19 @@ class SendInviteMail extends Mailable implements SendInviteMailContract
 }
 ```
 
+### Configuration
+
+By default, your users need to input their _current_ e-mail address when accepting an invitation. This is an extra security layer, so when the invitation link gets stolen, one needs to know the e-mail address that is being activated. To disable this behavior, set in `config/filament-invite.php`:
+
+```php
+    'require_current_email_on_invite' => false,
+```
+
 ### Event listener
+
 If for some reason you need to listen to the InviteAccepted Event, you can register a listener handling a InviteProcessedEvent.
 Register the listener in your EventServiceProvider.
+
 ```php
 InviteProcessedEvent::class => [
     InviteProcessedListener::class,
@@ -139,8 +150,8 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## Credits
 
-- [Martijn Wagena](https://github.com/concept7)
-- [All Contributors](../../contributors)
+-   [Martijn Wagena](https://github.com/concept7)
+-   [All Contributors](../../contributors)
 
 ## License
 
