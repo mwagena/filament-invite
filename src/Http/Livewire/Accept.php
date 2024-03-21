@@ -56,7 +56,7 @@ class Accept extends SimplePage
         }
         $this->acceptId = $acceptId ?? request()->query('acceptId');
         $this->hash = $hash ?? request()->query('hash');
-        $this->expired = ! Invite::query()
+        $this->expired = !Invite::query()
             ->where('id', $this->acceptId)
             ->where('token', $this->hash)
             ->where('expires_at', '>=', now())
@@ -116,7 +116,7 @@ class Accept extends SimplePage
 
         $this->submitted = true;
 
-        if (! Filament::auth()->attempt($data)) {
+        if (!Filament::auth()->attempt($data)) {
             throw ValidationException::withMessages([
                 'data.email' => __('Login failed'),
             ]);
@@ -127,7 +127,6 @@ class Accept extends SimplePage
         }
 
         return redirect()->intended(route(config('filament-invite.after_login_redirect_route')));
-
     }
 
     public function form(Form $form): Form
@@ -155,13 +154,20 @@ class Accept extends SimplePage
 
     protected function getEmailFormComponent(): Component
     {
-        return TextInput::make('email')
+        $input = TextInput::make('email')
             ->label(__('E-mail address'))
             ->email()
             ->required()
             ->autocomplete()
             ->autofocus()
             ->extraInputAttributes(['tabindex' => 1]);
+
+        if (!config('filament-invite.require_current_email_on_invite', true)) {
+            $input->default(Invite::where('id', $this->acceptId)->firstOrFail()->email);
+            $input->readonly();
+        }
+
+        return $input;
     }
 
     protected function getPasswordFormComponent(): Component
